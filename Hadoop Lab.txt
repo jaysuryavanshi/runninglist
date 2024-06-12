@@ -1,0 +1,355 @@
+Hadoop Lab
+
+
+Name Node - http://m01.itversity.com:9870/
+History server - http://m02.itversity.com:18080/
+
+
+HDFS
+
+hadoop fs and hdfs dfs
+hadoop fs -ls @/user/itv010248
+hdfs getconf -namenodes
+hadoop fs -ls -S -h /spark-logs (Sorting based on file size)
+hadoop fs -ls -t -r /public
+hadoop fs -ls /public | grep black_friday
+hadoop fs -mkdir /user/itv010248/retail_db
+hadoop fs -mkdir -p /user/itv010248/dir1/dir2
+hadoop fs -rmdir /user/itv010248/retail_db
+hadoop fs -rm -R /user/itv010248/dir1 (Recursively remove the dir1 and dir2)
+
+move biglog.txt from local machine (i.e. gateway node) to Hadoop /user/data folder
+hadoop fs -put <local file path> <hdfsfilepath>
+hadoop fs -copyFromLocal <local file path> <hdfsfilepath>
+
+move from Hadoop to local machine (i.e. gateway node) to Hadoop /user/data folder
+hadoop fs -get <local file path> <hdfsfilepath>
+hadoop fs -copyToLocal <local file path> <hdfsfilepath>
+
+Copy from one location to another location within hadoop
+hadoop fs -cp data/bigLog.txt datanew
+
+Move from one location to another location within hadoop
+hadoop fs -mv data/bigLog.txt datanew
+
+File system check - hdfs fsck /user/itv010248/datanew/biglog.txt -files -blocks -locations
+
+mysql -A -u retail_user -h ms.itversity.com -p itversity
+
+Run the Jar command where jar file is placed
+hadoop jar mapreduce_prog.jar data/input/bigLog.txt data/outputreduce0
+
+hadoop jar mapreduce_prog.jar data/input/inputfile.txt data/output_mapreduce/output_program1
+
+hadoop jar mapreduce_prog_combiner.jar data/input/bigLog.txt data/outputreducecombiner
+
+hadoop jar mapreduce_prog_cpartitioner.jar data/input/bigLog.txt data/outputreducecpartitioner
+
+
+===TO CHECK Word Count===
+from pyspark.sql import SparkSession
+import getpass
+username=getpass.getuser()
+spark=SparkSession.\
+builder.\
+config('spark.ui.port','0').\
+config("spark.sql.warehouse.dir",f"/user/itv010248/warehouse").\
+enableHiveSupport().\
+master('yarn').\
+getOrCreate()
+
+rdd1=spark.sparkContext.textFile("/user/itv010248/data/input/inputfile.txt")
+rdd2=rdd1.flatMap(lambda x:x.split(" "))
+rdd3=rdd2.map(lambda word:(word,1))
+rdd4=rdd3.reduceByKey(lambda x,y:x+y)
+rdd4.collect()
+rdd4.saveAsTextFile("/user/itv010248/data/newoutput")
+
+===TO CHECK Word Count===
+
+===TO CHECK Linkedin Views ===
+
+from pyspark.sql import SparkSession
+import getpass
+username=getpass.getuser()
+spark=SparkSession.\
+builder.\
+config('spark.ui.port','0').\
+config("spark.sql.warehouse.dir",f"/user/itv010248/warehouse").\
+enableHiveSupport().\
+master('yarn').\
+getOrCreate()
+
+rdd1 = spark.sparkContext.textFile("/user/itv010248/data/input/linkedin_views.csv")
+rdd2 = rdd1.map(lambda x: x.split(",")[2])
+rdd3 = rdd2.map(lambda x: (x,1))
+rdd4 = rdd3.reduceByKey(lambda x,y:x+y)
+rdd5 = rdd4.sortBy(lambda x: x[1])
+rdd5.collect()
+===TO CHECK Linkedin Views ===
+
+SPARK USe CAse1
+
+/data/retail_db/orders/part-00000
+
+Order_ID, Order_Timestamp, Customer_ID, Order_Status
+
+Find Total number of Orders
+orders = spark.sparkContext.textFile("/user/itv010248/data/input/part-00000")
+total = orders.map(lambda x: x.split(","))
+total.count()
+
+Find count of orders in each order status
+rdd1 = spark.sparkContext.textFile("/user/itv010248/data/input/part-00000")
+rdd2 =rdd1.map(lambda x:(x.split(",")[0],1)
+rdd3 =rdd2.reduceByKey(lambda x,y : x+y)
+rdd4 =rdd3.sortBy(lambda x:x[0],False)
+rdd4.collect()
+
+Find premium customers top 10
+input = spark.sparkContext.textFile("/user/itv010248/data/input/part-00000")
+ip_split =input.map(lambda x:(x.split(",")[2],1))
+reduced =ip_split.reduceByKey(lambda x,y : x+y)
+sorted=reduced.sortBy(lambda x:x[1])
+sorted.take(10)
+
+Distinct count of customers who placed minimum 1 order
+input = spark.sparkContext.textFile("/user/itv010248/data/input/part-00000")
+distinct =input.map(lambda x:x.split(",")[2]).distinct()
+distinct.count()
+
+Customer has max number of closed orders
+orders = spark.sparkContext.textFile("/user/itv010248/data/input/part-00000")
+closed = orders.filter(lambda x:x.split(",")[3] == 'CLOSED')
+cust = closed.map(lambda x:(x.split(",")[2],1))
+cust_agg = cust.reduceByKey(lambda x,y : x+y)
+cust_sort = cust_agg.sortBy(lambda x:x[1],False)
+cust_sort.take(5)
+
+--> SPARK CORE API's RDD -->
+
+Develop a logic to process a huge file (10TB). In this case one will use smaller sample to develop the code and if the code is code is correct then run on the 10TB.
+
+Parallelize - To develop and test code in local
+
+--> Chain of functions -->
+
+--> Single LIne -->
+
+words = ("BIG", "Data", "Is", "interesting", "technoglogy", "jay", "will", "crack", "DE", "jay", "will", "ace", "It", "jay", "will", "master", "DE")
+output_rdd = spark.sparkContext.parallelize(words).map(lambda x:x.upper()).map(lambda x:(x,1)).reduceByKey(lambda x,y : x+y).sortBy(lambda x:x[0]).collect()
+
+--> Multi Line -->
+result = spark.\
+sparkContext.\
+parallelize(words).\
+map(lambda x:x.upper()).\
+map(lambda x:(x,1)).\
+reduceByKey(lambda x,y : x+y).\
+sortBy(lambda x:x[0],False)
+
+--> How to check the partitions of RDD -->
+
+spark.sparkContext.defaultParallelism
+
+base_rdd.getNumPartitions()
+
+--> Count By Value -->
+orders = spark.sparkContext.textFile("/user/itv010248/data/input/part-00000")
+mapped_rdd =orders.map(lambda x:x.split(",")[3])
+mapped_rdd.countByValue()
+
+--> Transformation Categories -->
+
+1. Narrow 	- No shuffling involved. (e.g., map, flatMap, filter)
+2. Wide		- Shuffling involved. (e.g., reduceByKey, count)
+
+reduceByKey is transformation and reduce is an action. Because reduce output is final and no further transformation required hence reduce is an action.
+
+--> reduceByKey Vs groupByKey -->
+
+1000 node cluster
+1TB file - 8000 blocks
+each node will holds around 8 blocks
+So RDD will have 8000 collections
+
+reduceByKey (local aggregation in parellal on 1000 nodes)
+groupByKey doesnt work on local parallelize. It just group keys together and send to partitions. All worker nodes are not utilized.
+
+groupByKey example
+
+base_rdd = spark.sparkContext.textFile("/user/itv010248/data/input/part-00000")
+mapped_rdd = base_rdd.map(lambda x : (x.split(",")[3],x.split(",")[2]))
+group_rdd = mapped_rdd.groupByKey()
+result = group_rdd.map(lambda x : (x[0],len(x[1])))
+result.collect()
+
+--> REPARTITION Vs COALESCE -->
+
+Increase the partitions when more parallelism is required and you have sufficient cluster/machine/nodes.
+Repartition - Increase or Decrease partitions. Always complete reshuffling of data to make sure equal distribution of data.
+Coalsce - Decrease partitions, Intent avoid shuffling by clubbing part on same machine.
+For e.g.,
+1gb file create 9 blocks means 9 partitions
+base_rdd.getPartitions() answer is 9
+reduce_partition = base_rdd.rePartitions(4) --> REPARTITION used to increase or decrease partitions
+reduce_rdd.getPartitions() answer is 4
+
+new_rdd = base_rdd.coalesce(3) --> COALESCE used only for reduce partitions
+new_rdd.getPartitions() answer is 3
+
+--> REPARTITION Vs COALESCE -->
+
+No of Task = No of Partition
+No of Jobs = No of Actions
+No of stages = No of wide transformation + 1
+
+1gb file 8 partitions hence 8 Tasks
+Word count & reduceByKey hence 2 stages
+
+spark-submit \
+--deploy-mode cluster \
+--master yarn \
+--num-executors 3 \
+--executor-cores 4 \
+--executor-memory 2G \
+--driver-memory 2G \
+--conf spark.dynamicAllocation.enabled=false \
+submit.py
+
+spark3-submit \
+--master yarn \
+--num-executors 3 \
+--executor-cores 4 \
+--executor-memory 2G \
+--conf spark.dynamicAllocation.enabled=false \
+submit1.py
+
+Spark Project
+
+js_lc_project.ipynb
+
+hadoop fs -get /user/itv010248/Spark_Project/js_lc_project.ipynb /user/itv010248/spark_project
+
+from pyspark.sql.function import *
+
+new_df = raw_df.withColumn("name_sha2", sha2(concat_ws("||",*["emp_title","emp_length","home_ownership","annual_inc","zip_code","addr_state","grade","sub_grade","verfication_status"]),256))
+
+spark.sql(""" select name_sha2 as member_id, emp_title, emp_length, home_ownership, annual_inc,zip_code,addr_state,grade,sub_grade,verification_status
+from newtable """).rePartition(1).write \
+.format("csv") \
+.option("header",True) \
+.mode("overwrite") \
+.option("path", "/user/itv010248/spark_project/raw/customers_data_csv") \
+.save()
+
+.withColumnRenamed("annual_inc", "annual_income") \
+.withColumnRenamed("addr_state", "address_state") \
+.withColumnRenamed("zip_cod", "addresss_zipcode") \
+.withColumnRenamed("country", "address_country") \
+.withColumnRenamed("total_hi_cred_lim", "total_high_credit_limit") \
+.withColumnRenamed("annual_inc_joint", "join_annual_income")
+
+
+loans_schema = 'loan_id string, member_id string, loan_amount float, funded_amount float, loan_term_months string, interest_rate float, monthly_installment float, issue_date string, loan_status string, loan_purpose string, loan_title string'
+
+loan_amount, funded_amount, loan_term_months, interest_rate, monthly_installment, issue_date, loan_status, loan_purpose
+
+
+debt_consolidation, credit_card, home_improvement, other, major_purchase, medical, small_business, car, vacation, moving, house, wedding, renewable_energy, educational
+
+
+customer_schema = 'member_id string, emp_title string, emp_length string, home_ownership string,
+annual_inc float, addr_state string, zip_code string, country string, grade string, sub_grade string,
+verification_status string, tot_hi_cred_lim float, application_type string, annual_inc_joint string, verification_status_joint string'
+
+pub_rec, pub_rec_bankruptcies, inq_last_6mths
+
+loans_def_p_public_rec_df = loans_def_processed.withColumn("pub_rec", col("pub_rec").cast("integer")).fillna(0, subset=["pub_rec"])
+
+loans_def_p_public_rec_br_df = loans_def_p_public_rec_df.withColumn("pub_rec_bankruptcies", col("pub_rec_bankruptcies").cast("integer")).fillna(0, subset=["pub_rec_bankruptcies"])
+
+loans_def_p_inq_df = loans_def_p_public_rec_br_df.withColumn("inq_last_6mths", col("inq_last_6mths").cast("integer")).fillna(0, subset=["inq_last_6mths"])
+
+create external table itv013073_lending_club.customers ( member_id string, emp_title string,	emp_length	int, home_ownership string,	annual_income float,	address_state string, zip_code string,	address_country string,	grade	string, sub_grade string,	verification_status	string, tot_hi_cred_lim float, application_type string,	join_annual_income float, verification_status_joint string,	ingested_date timestamp) stored as parquet location 'lending_club_project/cleaned/customers_parquet'
+
+create external table itv013073_lending_club.loans ( 'loan_id string, member_id string, loan_amount float, funded_amount float, loan_term_years integer, interest_rate float, monthly_installment float, issue_date string, loan_status string, loan_purpose string, loan_title string,ingested_date timestamp') stored as parquet location 'lending_club_project/cleaned/loans_parquet'
+
+
+spark.sql("""create external table itv013073_lending_club.repayment(loan_id	string, total_principal_received float, total_interest_received float, total_late_fee_received float, total_payment_received float, last_payment_received float, last_payment_date string, next_payment_date string, ingest_date timestamp) stored as parquet location '/user/itv013073/lending_club_project/cleaned/loan_repayment_parquet' """)
+
+
+spark.sql("""create external table itv013073_lending_club.defaulters_delinq(member_id string, delinq_2yrs integer, delinq_amnt float, mths_since_last_delinq integer) stored as parquet location '/user/itv013073/lending_club_project/cleaned/loan_defaulters_delinq_parquet' """)
+
+spark.sql("""create external table itv013073_lending_club.loan_defaulters_detail_rec_enq(member_id string, pub_rec integer, pub_rec_bankruptcies integer, inq_last_6mths integer) stored as parquet location '/user/itv013073/lending_club_project/cleaned/loan_defaulters_detail_records_enq_parquet' """)
+
+
+TO BE CREATED
+
+customer_df = spark.sql("""
+select * from itv013073_lending_club.customer where member_id not in 
+(select member_id from bad_data_customer)
+""")
+
+
+loan_defaulters_delinq_df = spark.sql("""
+select * from itv013073_lending_club.defaulters_delinq where member_id not in 
+(select member_id from bad_data_customer)
+""")
+
+loan_defaulters_delinq_df.write \
+.format("parquet") \
+.mode("overwrite") \
+.option("path", "/user/itv013073/lending_club_project/cleaned_new/loan_defaulters_delinq_parquet") \
+.save()
+
+
+loan_defaulters_details_rec_enq_df = spark.sql("""
+select * from itv013073_lending_club.loan_defaulters_detail_rec_enq where member_id not in 
+(select member_id from bad_data_customer)
+""")
+
+loan_defaulters_details_rec_enq_df.write \
+.format("parquet") \
+.mode("overwrite") \
+.option("path", "/user/itv013073/lending_club_project/cleaned_new/loan_defaulters_details_rec_enq_parquet") \
+.save()
+
+
+240 CICD-1   8hrs
+120 CICD-2   4hrs
+260 SparkInterview -8hrs
+
+
+### GIT HUB
+
+git --version
+git clone https://github.com/jaysuryavanshi/financeproject.git
+git status
+git add .
+git commit -m "...."
+git push origin main
+
+git init
+git clone https://github.com/jaysuryavanshi/js_lending_proj_01.git
+git remote add origin https://github.com/jaysuryavanshi/js_lending_proj_01.git
+git remote -vacation
+git branch
+git branch -m main
+git branch feature1 (Create new branch)
+git checkout feature1 (Move to feature1 branch)
+git checkout -b feature2 (Create and move to new branch)
+git checkout -b feature2 feature3 (Create feature3 based on feature 2 and move to new branch)
+git branch -d feature3 (Delete branch) Make sure u r not sitting on branch to be deleted. Switch to another branch like in this case switch to any other feature than feature3
+
+Restore
+
+1st scenario - Changes made in local but not staged
+2nd scenario - Changes made in local and staged
+3rd scenario - - Changes committed
+
+git log (history of commits)
+git reset hashvalue (Restore back to specific commit without forcing changes back to original state)
+git reset ~1 (Restore back to last commit)
+git reset --hard hashvalue (Restore back to specific commit by forcing changes back to original state)
+

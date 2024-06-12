@@ -1,0 +1,31 @@
+### GIT HUB
+
+git --version
+git clone https://github.com/jaysuryavanshi/financeproject.git
+git status
+git add .
+git commit -m "...."
+git push origin main
+
+git init
+git clone https://github.com/jaysuryavanshi/js_lending_proj_01.git
+git remote add origin https://github.com/jaysuryavanshi/js_lending_proj_01.git
+git remote -vacation
+git branch
+git branch -m main
+git branch feature1 (Create new branch)
+git checkout feature1 (Move to feature1 branch)
+git checkout -b feature2 (Create and move to new branch)
+git checkout -b feature2 feature3 (Create feature3 based on feature 2 and move to new branch)
+git branch -d feature3 (Delete branch) Make sure u r not sitting on branch to be deleted. Switch to another branch like in this case switch to any other feature than feature3
+
+Restore
+
+1st scenario - Changes made in local but not staged
+2nd scenario - Changes made in local and staged
+3rd scenario - - Changes committed
+
+git log (history of commits)
+git reset hashvalue (Restore back to specific commit without forcing changes back to original state)
+git reset ~1 (Restore back to last commit)
+git reset --hard hashvalue (Restore back to specific commit by forcing changes back to original state)
