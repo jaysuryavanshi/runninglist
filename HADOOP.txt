@@ -1,0 +1,45 @@
+HADOOP
+
+Core - 
+
+HDFS - Distributed storage file system
+YARN - Yet Another Resource Negotiator, Resource allocation
+MapReduce - Programming Model to process data across cluster
+	Mapper - transform data in parallel across cluster
+	Reducer - Aggregate data 
+PIG - Sits on top of MapReduce. Scripting way Highlevel programming SQL LIKE API's to
+HIVE -  Sits on top of MapReduce. treat HDFS as SQL Database
+AMBARI - Portal to administrator the cluster. Horton works on Ambari
+
+MESOS - Similar to YARN
+SPARK - Sits on top of MapReduce. Write program using Python
+TEZ - Similar to SPARK work in conjuction with HIVE
+
+HBASE - NoSQL Database, Appropriate for transactional data. OLTP.
+
+STORM - Process streaming data, realtime data processing
+
+Ozzie - Jobs scheduler 
+
+Zookeeper - Cluster coordinator, checks nodes availability
+
+Data Ingestion - SQOOP, FLUME, KAFKA
+
+SQOOP - Connector between SQL database and HADOOP cluster.
+FLUME - Listen to Weblogs coming from Web server and Publish them to HADOOP Cluster.
+KAFKA - Similar to FLUME
+
+Query Engines
+
+DRILL - Query execution engine, Write SQL queries to query across NoSQL database HBASE, HIVE & MongoDB
+HUE - - Query execution engine, works closely with AMBARI
+PHOENIX - - Query execution engine, Similar to DRILL
+Presto - Query execution engine
+ZEPPELIN - Query execution engine,
+
+
+External Data Storage
+
+MySQL and Cassandra- SQL database
+MongoDB	 - NoSQL Database
+

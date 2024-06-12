@@ -1,0 +1,295 @@
+DATABASE SELECTION APPROACH -- ACP i.e., Avaialability, Constistency & Partition-tolerance
+
+Session#5 ==> Constrain - Primary(PARENT/REFERENCED), Unique, NOT NULL, Foreign (CHILD) , Check
+
+CREATE TABLE students1 (
+student_id int AUTO_INCREMENT,
+student_fname VARCHAR(30) NOT NULL,
+student_mname VARCHAR(30),
+student_lname VARCHAR(30) NOT NULL,
+student_email VARCHAR(30) NOT NULL,
+student_phone int(15) NOT NULL,
+student_age int(10) NOT NULL,
+course_enrolled int (10) NOT NULL,
+enrollment_date TIMESTAMP NOT NULL,
+years_of_exp int(10) NOT NULL,
+student_company VARCHAR(30),
+batch_date VARCHAR(30) NOT NULL,
+source_of_joining VARCHAR(30) NOT NULL,
+location VARCHAR(30) NOT NULL,
+PRIMARY KEY(student_id),
+UNIQUE KEY(student_email)
+);
+
+CREATE TABLE courses_new (course_id INT PRIMARY KEY AUTO_INCREMENT NOT NULL, course_name VARCHAR(20) NOT NULL, course_duration_months DECIMAL (3,1), course_fee INT (10) NOT NULL, changed_at TIMESTAMP DEFAULT NOW() ON UPDATE NOW());
+
+INSERT INTO courses_new (course_name, course_duration_months, course_fee) values ('Big Data', 6.5, 50000), ('WD',3.5,20000), ('DS',6,40000);
+
+INSERT INTO courses_new (course_name, course_duration_months, course_fee) values ('DevOps', 10.5, 40000);
+
+INSERT INTO students(student_fname,student_mname,student_lname,student_email,student_phone,student_age,course_enrolled,years_of_exp,student_company,batch_date,source_of_joining,location) values ('Jay', 'A', 'S', 'jay@gmail.com', 12345,43,1,18,'RIL','27-11-2023','Referral','Mumbai');
+
+INSERT INTO students(student_fname, student_mname, student_lname, student_email, student_phone, student_age, course_enrolled, enrollment_date, years_of_exp,student_company,batch_date,source_of_joining,location) values ('Alh%ad', 'A', 'S', 'alhad1@gmail.com', 12345,43,1,(STR_TO_DATE('18/02/2019 11:15:45','%d/%m/%Y %H:%i:%s')),21,'RIL','27-11-2023','Referral','Mumbai');
+
+
+INSERT INTO students(student_fname, student_mname, student_lname, student_email, student_phone, student_age, course_enrolled, enrollment_date, years_of_exp,student_company,batch_date,source_of_joining,location) values ('Mahes', 'K', 'A', 'maheshka@gmail.com', 12335,43,2,(STR_TO_DATE('12/11/2023 11:15:45','%d/%m/%Y %H:%i:%s')),18,'SEC','27-11-2023','You Tube','Mumbai'), ('Mahesh', 'J', 'D', 'mmax@gmail.com', 25345,41,3,(STR_TO_DATE('14/11/2023 11:15:45','%d/%m/%Y %H:%i:%s')),16,'ADANI','27-11-2023','LinkedIn','Mumbai');
+
+DATE FORMAT ==>> https://www.sql-easy.com/learn/how-to-insert-date-in-sql/
+
+UPDATE students SET student_fname='Mahesh' where student_fname='Mahes';
+
+Session#6 ==> DISTINT, ORDER BY, LIMIT, LIKE
+
+SELECT DISTINCT source_of_joining from students;
+SELECT source_of_joining from students GROUP BY source_of_joining;
+SELECT source_of_joining,count(source_of_joining) from students GROUP BY source_of_joining;
+SELECT student_fname, student_lname, years_of_exp FROM students ORDER BY years_of_exp DESC;
+SELECT student_fname, student_lname, years_of_exp FROM students ORDER BY 3 LIMIT 3;
+SELECT student_fname, student_lname, enrollment_date FROM students ORDER BY 3,1 DESC LIMIT 3;
+SELECT student_fname,student_lname,enrollment_date, source_of_joining FROM students ORDER BY source_of_joining;
+SELECT student_fname, student_lname FROM students where student_fname LIKE '%an';
+SELECT student_fname, student_lname FROM students where student_fname LIKE '___';
+
+SELECT student_fname, student_lname FROM students where student_fname LIKE '%\%ad';
+
+SELECT DISTINCT source_of_joining FROM students ORDER BY enrollment_date;
+
+
+
+Session#7 ==> FLOW OF QUERY EXECUTION 
+
+FROM (LOAD THE TABLE)
+
+SELECT (PROJECT COLUMN)
+
+DISTINCT
+
+ORDER BY
+
+Session#8 ==> AGGREGATE (Input is many line but output is single line)
+
+COUNT & GROUP BY
+
+SELECT source_of_joining, count(source_of_joining) FROM students GROUP BY source_of_joining;
+
+WONT WORK - SELECT location, count(source_of_joining) FROM students GROUP BY source_of_joining; Column present in GROUP By must present in SELECT
+
+SELECT location, source_of_joining, count(*) FROM students where location='Mumbai' GROUP BY source_of_joining, location;
+
+MIN & MAX
+
+SELECT MIN(years_of_exp) FROM students;
+
+COMPARE RESULT --> SELECT source_of_joining, MAX(years_of_exp) FROM students GROUP BY years_of_exp, source_of_joining;
+COMPARE RESULT --> SELECT source_of_joining, MAX(years_of_exp) FROM students GROUP BY source_of_joining;
+
+SUM Function
+
+SELECT source_of_joining, SUM(years_of_exp) FROM students GROUP BY source_of_joining;
+
+AVERAGE Funtion
+
+SELECT student_company, AVG(years_of_exp) FROM students GROUP BY student_company;
+
+SELECT location, AVG(years_of_exp) FROM students GROUP BY location;
+
+Session#9 ==> FEW MORE DATA TYPES
+
+WGET http://MEDIA.SUNDOG-SOFT.COM/hadoop/Ratings.Breakdown.py
+
+DECIMAL (5,3)
+
+TIMESTAMP NOW or CURRENT_TIMESTAMP
+
+CREATE TABLE courses_new (course_id INT PRIMARY KEY AUTO_INCREMENT NOT NULL, course_name VARCHAR(20) NOT NULL, course_duration_months DECIMAL (3,1), course_fee INT (10) NOT NULL, changed_at TIMESTAMP DEFAULT NOW() ON UPDATE NOW());
+
+Session#9 ==> LOGICAL OPERATORS
+
+!= NOT EQUAL TO
+SELECT student_fname, location FROM students WHERE location !='Pune';
+
+SELECT course_name FROM courses_new WHERE course_name LIKE '%s%';
+SELECT course_name FROM courses_new WHERE course_name NOT LIKE '%s%';
+
+SELECT student_fname, years_of_exp, source_of_joining, location FROM students WHERE location='Mumbai' AND source_of_joining='LinkedIn' AND years_of_exp < 20;
+
+Result years of exp not between 18 to 20
+
+SELECT student_fname, years_of_exp, source_of_joining, location FROM students WHERE years_of_exp < 18 OR years_of_exp > 20;
+SELECT student_fname, years_of_exp, source_of_joining, location FROM students WHERE years_of_exp NOT BETWEEN 18 AND 20;
+
+SELECT student_fname, years_of_exp, source_of_joining, location, student_company FROM students WHERE student_company IN ('TECHM','SEC','ADANI');
+
+SELECT student_fname, years_of_exp, source_of_joining, location, student_company FROM students WHERE student_company NOT IN ('TECHM','SEC','ADANI');
+
+SELECT course_name, course_fee,
+CASE
+WHEN course_duration_months > 4 THEN 'MASTER\'s'
+ELSE 'DIPLOMA'
+END AS course_type
+FROM courses_new;
+
+SELECT student_fname, years_of_exp, source_of_joining, location, student_company,
+CASE
+WHEN student_company IN ('ADANI', 'RIL')  THEN 'CAPTIVE'
+ELSE 'PRODUCT'
+END AS company_type
+FROM students ORDER BY company_type, student_company,student_fname;
+
+Session#10 ==> JOINS
+
+students & courses_new
+
+SELECT student_fname, course_name FROM students JOIN courses_new ON students.course_enrolled=courses_new.course_id WHERE student_fname='Jay';
+
+Default INNER JOIN is made, Only the matching records are considered. Non matching records are discarded and removed from results.
+
+
+LEFT Outer Join --> All the non matching records in the left table which does not have the match in the right.
+SELECT student_fname, course_name FROM students LEFT JOIN courses_new ON students.course_enrolled=courses_new.course_id;
+
+RIGHT Outer Join --> All the non matching records in the right table which does not have the match in the left.
+SELECT student_fname, course_name FROM students RIGHT JOIN courses_new ON students.course_enrolled=courses_new.course_id;
+
+FULL Outer Join --> All non matching in LEFT & RIGHT are shown together
+
+SELECT student_fname, course_name FROM students LEFT JOIN courses_new ON students.course_enrolled=courses_new.course_id UNION SELECT student_fname, course_name FROM students RIGHT JOIN courses_new ON students.course_enrolled=courses_new.course_id;
+
+
+Session#11 ==> DIFF BETWEEN WHERE Vs HAVING CLAUSE
+
+I want to get total number of student from different sources
+
+SELECT source_of_joining, count(*) AS Total FROM students GROUP BY source_of_joining;
+
++-------------------+-------+
+| source_of_joining | Total |
++-------------------+-------+
+| Google            |     1 |
+| LinkedIn          |     1 |
+| Referral          |     5 |
+| You Tube          |     1 |
++-------------------+-------+
+
+WHERE CLAUSE is used before GROUP BY to filter individual records.
+WONT WORK - SELECT source_of_joining, count(*) AS Total FROM students GROUP BY source_of_joining WHERE TOTAL >1;
+
+HAVING CLAUSE is used to after GROUP BY to do filtering on aggregated records.
+WILL WORK - SELECT source_of_joining, count(*) AS Total FROM students GROUP BY source_of_joining HAVING TOTAL >1;
+
+WHERE is more performant than HAVING
+
+I want to total number of ppl registered though LinkedIn
+LESS EFFICIENT - SELECT source_of_joining, count(*) AS Total FROM students GROUP BY source_of_joining HAVING source_of_joining='LinkedIn';
+MORE EFFICIENT - SELECT source_of_joining, count(*) AS Total FROM students WHERE source_of_joining='LinkedIn';
+
+Can we use both WHERE & HAVING together ?
+Wanted to know location from where than 1 student have joined and student exp is more than 10 years.
+
+SELECT location, count(*) AS total FROM students WHERE years_of_exp > 18 GROUP BY location HAVING total > 1;
+
+Session#12 ==> OVER PARTITION BY
+
+https://onecompiler.com/mysql/3zt5eeqc9
+
+employee - emp_fname, emp_lname, age, salary, location
+
+CREATE TABLE employee (emp_id INT PRIMARY KEY AUTO_INCREMENT, emp_fname VARCHAR(20), emp_lname VARCHAR(20), age INT, salary INT, location VARCHAR(20));
+
+INSERT INTO employee (emp_fname, emp_lname, age, salary, location) VALUES ('Jay', 'S', 43, 50000, 'Kharghar'), ('Amit', 'S', 43, 25000, 'Kharghar'), ('Rajan', 'S', 48, 60000, 'KK'), ('Umesh', 'D', 44, 50000, 'Pune'), ('kole', 'D', 44, 10000, 'Pune'), ('Mahesh', 'D', 42, 42000, 'Mulund'), ('Mahesh', 'A', 43, 50000, 'Mulund');
+
+SELECT location, count(*), avg(salary) FROM employee GROUP BY location;
+
+SELECT emp_fname, emp_lname, location, count(*), avg(salary) FROM employee GROUP BY location, emp_fname, emp_lname;
+
+SELECT emp_fname, emp_lname, emp.location, total_count, avg_salary FROM employee JOIN (select location, count(location) as total_count, avg(salary) as avg_salary FROM employee GROUP BY location) temptable on employee.location =temptable.location;
+
+SELECT emp_fname, emp_lname, location, COUNT(location) OVER (PARTITION BY location) AS total, avg(salary) OVER (PARTITION BY LOCATION) as Average FROM employee; 
+
+Session#13 ==> ROW NUMBER
+
+CREATE TABLE employee (emp_id INT PRIMARY KEY AUTO_INCREMENT, emp_fname VARCHAR(20), emp_lname VARCHAR(20), age INT, salary INT, location VARCHAR(20));
+
+INSERT INTO employee (emp_fname, emp_lname, age, salary, location) VALUES ('Jay', 'S', 43, 50000, 'Kharghar'), ('Amit', 'S', 43, 25000, 'Kharghar'), ('Rajan', 'S', 48, 60000, 'KK'), ('Umesh', 'D', 44, 50000, 'Pune'), ('kole', 'D', 44, 10000, 'Pune'), ('Mahesh', 'D', 42, 42000, 'Mulund'), ('Mahesh', 'A', 43, 50000, 'Mulund');
+
+select emp_fname, emp_lname, salary, row_number() over (order by salary desc) from employee;
+
+SELECT * FROM ( select emp_fname, emp_lname, salary, row_number() over (order by salary desc) AS rownum from employee) temptable where rownum=5;
+
+Partition
+select emp_fname, emp_lname, salary, location, row_number() over (partition by location order by salary desc) from employee;
+
+Person getting highest salary in each location
+
+selecct * from (select emp_fname, emp_lname, salary, location, row_number() over (partition by location order by salary desc) as rownum from employee) as temptable where rownum=1;
+
+Session#14 ==> RANK & DENSE RANK
+
+select emp_fname, emp_lname, salary, rank() over (order by salary desc) from employee;
+
+select emp_fname, emp_lname, salary, dense_rank() over (order by salary desc) from employee;
+
+Session#15 ==> ORDER OF EXECUTION
+
+SEEK Vs SCAN
+
+CLUSTERED INDEX Vs NON-CLUSTERED INDEX
+
+Read the plan from RIGHT TO LEFT and from top to bottom
+
+
+FROM, JOIN
+
+WHERE
+
+GROUP BY
+
+HAVING
+
+SELECT
+
+ORDER BY
+
+LIMIT
+
+Session#16 ==> COMMON TABLE EXPRESSSION (CTE) OR WITH CLAUSE
+
+This is to simplify complex queries. Improves readability of a query.
+
+ORders Table - Order ID (PK), order date, Order Customer ID, Order Status
+
+Total order placed by each customer
+
+All customer who placed order more than avg orders.
+
+PRemium customer (Who places order more than avg customer)
+
+
+Sol 1 --> Sub query
+
+select avg(total_order_per_customer) as avg_ordere_per_cstomer from (
+select order_customer_id, count(*) as total_order_per_customer from orders group by order_customer_id);
+
+Sol 2 --> WITH CLAUSE
+
+WITH total_orders (order_customer_id, total_order_per_customer) as
+(select order_customer_id, count(*) as total_order_per_customer from orders group by order_customer_id)
+select avg(total_order_per_customer) as avg_ordere_per_cstomer from total_orders;
+
+Remember, Only single select is allowed, WITH & SELECT should run together.
+
+Find customer who places more than Avg order
+
+Nested queries
+select * from (select order_customer_id, count(*) as total_order_per_customer from orders group by order_customer_id) as total_orders
+join
+(select avg(total_order_per_customer) as avg_ordere_per_cstomer from ( select order_customer_id, count(*) as total_order_per_customer from orders group by order_customer_id)) average_orders;
+on total_orders.total_order_per_customer > average_orders.avg_ordere_per_cstomer
+
+WITH/CTE
+
+WITH total_orders (order_customer_id, total_order_per_customer) as (select order_customer_id, count(*) as total_order_per_customer from orders group by order_customer_id),
+average_orders () as (select avg(total_order_per_customer) as avg_ordere_per_cstomer from total_orders)
+select * from total_orders join average_orders on total_orders.total_order_per_customer > average_orders.avg_ordere_per_cstomer
+
+

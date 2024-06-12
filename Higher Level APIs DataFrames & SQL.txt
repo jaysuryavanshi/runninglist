@@ -1,0 +1,112 @@
+Higher Level APIs DataFrames & SQL
+
+RDD's - Its raw data distributed across partitions. It doesnt consist of any schema or any metadata associated with it.
+
+Data goes to Disk and Metadata stored in Metastore.
+
+SPARSK SQL _ Data files (Disk / DL -ADLS Gen2, GCP, S3) + Metadata (Metastore)
+
+DataFrames - RDD + Structures (Metadata/schema)
+DataFrames is in memory, not persistent and available only for session. In case session closed data is 
+gone. Metadata is kept metadata catalogue and kept temporarly.
+
+Spark table is persistent. Spark table available across session.
+
+Spark table is persistent but DataFrames is temporary.
+
+hadoop fs -put /home/itv010248/orders_with_headers.csv /public/trendytech/orders
+
+
+/user/itv010248/data/orders/orders_with_headers.csv
+
+from pyspark.sql import SparkSession
+import getpass
+username=getpass.getuser()
+spark=SparkSession.\
+builder.\
+config('spark.ui.port','0').\
+config("spark.sql.warehouse.dir",f"/user/itv010248/warehouse").\
+enableHiveSupport().\
+master('yarn').\
+getOrCreate()
+
+orders_df = spark.read\
+.format("csv")\
+.option("header","true")\
+.option("inferSchema","true")\
+.load("/user/itv010248/data/orders/*")
+
+orders_df.show()
+orders_df.printSchema()
+
+filter_df = orders_df.where("customer_id=11599")
+filter_df.show(truncate=False)
+WHERE and FILTER works similar manner
+filter_df = orders_df.filter("customer_id=11599")
+
+
+orders_df_json = spark.read\
+.json("/public/trendytech/datasets/orders.json")
+
+orders_df_parquet = spark.read\
+.parquet("/public/trendytech/datasets/ordersparquet")
+
+Create Spark Table out of DataFrame
+orders_df.createOrReplaceTempView("orders")
+df1= spark.sql("select * from orders where customer_id=11599")
+df1.show()
+
+
+
+from pyspark.sql import SparkSession
+spark=SparkSession.\
+builder.\
+config('spark.shuffle.useOldFetchProtocol','true').\
+config('spark.ui.port','0').\
+config("spark.sql.warehouse.dir",f"/user/itv010248/warehouse").\
+enableHiveSupport().\
+master('yarn').\
+getOrCreate()
+
+set hive.megastore.warehouse.dir=/user/itv010248/warehouse;
+
+
+spark.sql("create database if not exists itv010248_retail")
+
+spark.sql("show databases").show()
+
+spark.sql("show databases").filter("namespace like 'itv010248%'").show()
+
+spark.sql("use itv010248_retail)
+
+spark.sql("show table").show()
+
+spark.sql("create table itv010248_retail.orders (order_id integer, order_date string, customer_id integer, order_status string)")
+
+spark.sql("insert into itv010248_retail.orders select * from orders")
+
+spark.sql("use itv010248_retail")
+
+spark.sql("select * from itv010248_retail.orders limit 5").show()
+
+spark.sql("describe extended itv010248_retail.orders").show(truncate=False)
+
+Its a managed table and data is kept in "hdfs://m01.itversity.com:9000/user/itv010248/warehouse/itv010248_retail.db/orders".
+
+spark.sql ("drop table itv010248_retail.orders")
+
+--> Managed Vs External Table
+
+spark.sql("create table itv010248_retail.orders_ext (order_id integer, order_date string, customer_id integer, order_status string) using csv location '/public/trendytech/retail_db/orders'")
+
+Opensource Spark Insert and Select will work. However Update & Delete wont work.
+Insert, Select, Update & Delete will work with Databrick (Delta Lake).
+
+
+     |hdfs://m01.itversity.com:9000/user/itv010248/warehouse/itv010248_wk5assgn.db/orders|       |
+|Serde Library               |org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe                              
+
+
+
+
+

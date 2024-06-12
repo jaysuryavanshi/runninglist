@@ -1,0 +1,17 @@
+Airflow
+
+Check video descriptions for link (installation files and scripts)
+
+Open source platform that empowers data professionals to efficiently create, schedule & monitor the tasks and workflows.
+
+Popular - Uses python, Robust integration, Highly scalable, Rich interface & Open source
+
+D A G - Directed Acyclic Graph
+Directed - Dependencies have specified direction
+Acyclic	- No Cycle or Loops
+Graph - Diagram that consists of Nodes (Tasks) & Edges (Dependencies)
+
+Architecture
+
+Users	-> WebServers -> Scheduler -> Executor -> Workers (Works with desired data platform to derive desired resuls)
+

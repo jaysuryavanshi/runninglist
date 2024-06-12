@@ -1,0 +1,76 @@
+DBT _ Data Building Tool - Transformation
+
+Check video descriptions for link (installation files and scripts)
+
+SQL & Visual Studio as IDE
+
+Model	- SQL query written for processing or consumption
+
+Lineage	- Connection diagram to track the origin of data
+
+Modular - Processing transformatin & Consumption for end user
+
+Seeds	- Static data doesnt change
+Analyse	- Provision to run query in local not executed on Database
+Source	- Act as env. variables. Compliance team requirement not to use table or column names directly in the model.
+Test	- Data quality whether as per business requirement or not and fresh ness (i.e., replication frequency)
+	Singular	- Written to test specific business requirement on given model
+	Generic 	- parameterised approach so that can be reused
+
+Documentation - Generates automatically - no lag between code & documentation
+
+
+SQL		- To create model & test
+YAML	- For configurations
+JINJA	- To make SQL & YAML dynamic
+
+JINJA - To generate reusable code
+	{% %}  - Syntax to write control statements
+	{{ }}  - Expression to be used in the Code
+	TEXT	- For e.g. SELECT, UNION Execute in code
+	{# #}	- To write comments
+	
+Macro - User defined custom functions & written in SQL
+
+Packages - Prebuilt DBT projects created by some one else to address common problems. No need to reinvent the wheel.
+hub.getdbt.comments
+ dbt.util
+ 
+ DBT Materialization - Table Vs Views Vs Ephermal
+ 
+ 							Table			Views
+Transformation Objects		Heavy			Lightweight
+Improve performance			Table
+Reduce storage cost							Views
+
+ Materialization are ways to incorporate dbt model in to data warehouse
+ Materialization Types -
+	Table		- new table created every time materialized. In case table already exists then dropped and recreated
+	Views		- default, no need to set
+	Ephermal	- Used as reference to another table. But this table is not created.
+	Incremental	- Only extract the rows from source table which are added newly since previous dbt run
+	Snapshot
+	
+Incremental - 1. Config, 2. Model, 3.Where clause which finds the delta
+
+Snapshot 
+SCD - Slowly Changing Dimension - 
+SCD Type 1 - Overwrite changes dont preserve the history
+SCD Type 2 - History is preserved as new rows
+SCD Type 3 - history is preserved as new column
+
+Data engineering Task scheduling - Job scheduler - Apache airflow, dagster, prefect. 
+
+CI/CD
+
+CI - Code repository - Github, Gitlab 
+
+Feature Branch --> Main/Master Branch --> Production Branch
+
+Pull request - Request to merge code changes from one branch in to another branch
+Code Merge - Part of Pull Request, Usually involves code review & approval process. After code merge the code release to Prod happens through CI/CD tools.
+
+CD - Azure DevOps, Jenkins, Github
+
+
+ 
